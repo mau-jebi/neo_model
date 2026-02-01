@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jebi AI Training Monitor - neo_model</title>
+
+    <!-- Montserrat Font - Jebi Brand Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ====================================
+           JEBI BRAND IDENTITY SYSTEM
+           Leader in Mining Tech
+           ====================================
+
+           COLOR PALETTE:
+           - Deep Teal: #002634 (stability, main text, technological)
+           - Bright Red: #f03a1e (alerts, energy, key highlights)
+           - Light Gray: #c3c6c8 (backgrounds, accents)
+           - White: #ffffff (primary background)
+
+           TYPOGRAPHY:
+           - Font Family: Montserrat
+           - Titles: Bold (700)
+           - Subtitles: Medium (500)
+           - Body: Regular (400)
+        */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-weight: 400;
+            background: #ffffff;
+            color: #002634;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ====================================
+           HEADER - Brand Identity
+           ==================================== */
+        header {
+            background: #002634;
+            color: #ffffff;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 38, 52, 0.15);
+        }
+
+        .brand-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #c3c6c8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: #c3c6c8;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: #f03a1e;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(240, 58, 30, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        /* ====================================
+           CARDS - Primary Content Containers
+           ==================================== */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 2px solid #c3c6c8;
+            box-shadow: 0 2px 8px rgba(0, 38, 52, 0.08);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 38, 52, 0.12);
+            border-color: #002634;
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #002634;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #f03a1e;
+            display: inline-block;
+        }
+
+        /* ====================================
+           METRICS - Data Display
+           ==================================== */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #c3c6c8;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #002634;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #002634;
+        }
+
+        .metric-value.large {
+            font-size: 2.8rem;
+            color: #002634;
+            font-weight: 700;
+        }
+
+        /* Color coding for status indicators */
+        .metric-value.good {
+            color: #002634;
+        }
+
+        .metric-value.alert {
+            color: #f03a1e;
+            font-weight: 700;
+        }
+
+        .metric-value.warning {
+            color: #002634;
+            position: relative;
+        }
+
+        .metric-value.warning::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #f03a1e;
+        }
+
+        /* ====================================
+           PROGRESS BAR - Training Progress
+           ==================================== */
+        .progress-container {
+            margin: 24px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 36px;
+            background: #c3c6c8;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 38, 52, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #002634 0%, #004d6b 100%);
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(240, 58, 30, 0.15) 100%);
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #002634;
+        }
+
+        /* ====================================
+           GRID METRICS - Multi-column Display
+           ==================================== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .grid-metric {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #c3c6c8;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .grid-metric:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 38, 52, 0.1);
+        }
+
+        .grid-metric-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #002634;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .grid-metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #002634;
+        }
+
+        /* ====================================
+           ALERTS & INDICATORS
+           ==================================== */
+        .alert-box {
+            background: #fff5f4;
+            border: 2px solid #f03a1e;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            width: 24px;
+            height: 24px;
+            background: #f03a1e;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .alert-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #002634;
+        }
+
+        /* ====================================
+           FOOTER
+           ==================================== */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 24px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px solid #c3c6c8;
+        }
+
+        .footer p {
+            color: #002634;
+            font-size: 0.9rem;
+            font-weight: 400;
+            margin: 4px 0;
+        }
+
+        .footer-brand {
+            font-weight: 700;
+            color: #002634;
+            margin-top: 12px;
+        }
+
+        /* ====================================
+           UTILITY STATES
+           ==================================== */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #002634;
+            font-weight: 500;
+        }
+
+        .error {
+            background: #fff5f4;
+            border: 2px solid #f03a1e;
+            color: #002634;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .error strong {
+            color: #f03a1e;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* ====================================
+           TREND INDICATORS
+           ==================================== */
+        .trend-down::after {
+            content: ' ↓';
+            color: #f03a1e;
+            font-weight: 700;
+        }
+
+        .trend-up::after {
+            content: ' ↑';
+            color: #f03a1e;
+            font-weight: 700;
+        }
+
+        .trend-stable::after {
+            content: ' →';
+            color: #002634;
+            opacity: 0.5;
+        }
+
+        /* ====================================
+           RESPONSIVE DESIGN - Mobile Optimization
+           ==================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            header {
+                padding: 20px 16px;
+            }
+
+            .brand-title {
+                font-size: 0.85rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .card h2 {
+                font-size: 1.1rem;
+            }
+
+            .metric-value.large {
+                font-size: 2rem;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .grid-metric-value {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .metric-label {
+                font-size: 0.85rem;
+            }
+
+            .metric-value {
+                font-size: 1.1rem;
+            }
+
+            .metric-value.large {
+                font-size: 1.6rem;
+            }
+        }
+
+        /* ====================================
+           BRAND CHARACTER ENHANCEMENTS
+           Curved elements for approachability
+           ==================================== */
+        .curve-accent {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .curve-accent::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -5%;
+            width: 40%;
+            height: 200%;
+            background: linear-gradient(135deg, transparent 30%, rgba(240, 58, 30, 0.05) 100%);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="curve-accent">
+            <div class="brand-title">Jebi AI Engine - Leader in Mining Tech</div>
+            <h1>
+                <span class="status-indicator"></span>
+                RT-DETR Training Monitor
+            </h1>
+            <p class="subtitle">H100 Instance: 209.20.157.204 | neo_model v1.0</p>
+        </header>
+
+        <div id="dashboard">
+            <div class="loading">Loading training metrics...</div>
+        </div>
+    </div>
+
+    <script>
+        let previousLoss = null;
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                const training = data.training;
+                const gpu = data.gpu;
+                const cost = data.cost;
+                const completion = data.completion;
+
+                // Determine loss trend
+                let lossTrend = '';
+                if (previousLoss !== null && training.loss !== null) {
+                    if (training.loss < previousLoss * 0.95) {
+                        lossTrend = 'trend-down';
+                    } else if (training.loss > previousLoss * 1.05) {
+                        lossTrend = 'trend-up';
+                    } else {
+                        lossTrend = 'trend-stable';
+                    }
+                }
+                previousLoss = training.loss;
+
+                // Build HTML
+                let html = '';
+
+                // Training Progress Card
+                html += `
+                    <div class="card curve-accent">
+                        <h2>Training Progress</h2>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${training.epoch_progress}%">
+                                    ${training.epoch_progress}%
+                                </div>
+                            </div>
+                            <div class="progress-text">
+                                Epoch ${training.epoch} of ${training.total_epochs}
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Batch</span>
+                            <span class="metric-value">${training.current_batch} / ${training.total_batches}</span>
+                        </div>
+                        ${completion ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Estimated Completion</span>
+                            <span class="metric-value">${completion.eta}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Hours Remaining</span>
+                            <span class="metric-value ${completion.hours_remaining < 2 ? 'alert' : ''}">${completion.hours_remaining.toFixed(1)}h</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Loss and AP Metrics Card
+                html += `
+                    <div class="card">
+                        <h2>Training Metrics</h2>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Loss</span>
+                            <span class="metric-value large ${lossTrend}">
+                                ${training.loss !== null ? training.loss.toFixed(3) : 'N/A'}
+                            </span>
+                        </div>
+                        ${training.ap !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Average Precision (AP)</span>
+                            <span class="metric-value good">${(training.ap * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.ap50 !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">AP @ IoU=0.50</span>
+                            <span class="metric-value">${(training.ap50 * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.ap75 !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">AP @ IoU=0.75</span>
+                            <span class="metric-value">${(training.ap75 * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.best_ap !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Best AP</span>
+                            <span class="metric-value good">${(training.best_ap * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // GPU Status Card
+                const highTemp = gpu.temperature > 80;
+                const lowUtil = gpu.utilization < 70;
+
+                html += `
+                    <div class="card">
+                        <h2>GPU Status (H100)</h2>
+                        ${highTemp ? '<div class="alert-box"><div class="alert-icon"></div><div class="alert-text">High GPU temperature detected</div></div>' : ''}
+                        ${lowUtil && gpu.utilization !== null ? '<div class="alert-box"><div class="alert-icon"></div><div class="alert-text">Low GPU utilization - check training pipeline</div></div>' : ''}
+                        <div class="grid-2">
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Utilization</div>
+                                <div class="grid-metric-value ${gpu.utilization > 85 ? 'good' : 'alert'}">
+                                    ${gpu.utilization !== null ? gpu.utilization + '%' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Memory Used</div>
+                                <div class="grid-metric-value">
+                                    ${gpu.memory_used !== null ? gpu.memory_used.toFixed(1) + ' GB' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Temperature</div>
+                                <div class="grid-metric-value ${gpu.temperature > 80 ? 'alert' : ''}">
+                                    ${gpu.temperature !== null ? gpu.temperature + '°C' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Power Draw</div>
+                                <div class="grid-metric-value">
+                                    ${gpu.power_draw !== null ? gpu.power_draw.toFixed(0) + 'W' : 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Training Info Card
+                html += `
+                    <div class="card">
+                        <h2>Training Configuration</h2>
+                        <div class="metric-row">
+                            <span class="metric-label">Batch Size</span>
+                            <span class="metric-value">16 (4×4 accum)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Learning Rate</span>
+                            <span class="metric-value">
+                                ${training.learning_rate !== null ? training.learning_rate.toExponential(2) : 'N/A'}
+                            </span>
+                        </div>
+                        ${training.speed !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Training Speed</span>
+                            <span class="metric-value">${training.speed.toFixed(2)} it/s</span>
+                        </div>
+                        ` : ''}
+                        ${training.time_per_epoch !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Time per Epoch</span>
+                            <span class="metric-value">${(training.time_per_epoch / 60).toFixed(1)} min</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Cost Tracking Card
+                if (cost.uptime_hours !== null) {
+                    const highCost = cost.projected_total > 200;
+                    html += `
+                        <div class="card">
+                            <h2>Cost Tracking</h2>
+                            ${highCost ? '<div class="alert-box"><div class="alert-icon"></div><div class="alert-text">Projected cost exceeds $200 - monitor training efficiency</div></div>' : ''}
+                            <div class="metric-row">
+                                <span class="metric-label">Instance Uptime</span>
+                                <span class="metric-value">${cost.uptime_hours.toFixed(1)} hours</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Cost Accumulated</span>
+                                <span class="metric-value">$${cost.cost_so_far.toFixed(2)}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Projected Total Cost</span>
+                                <span class="metric-value ${highCost ? 'alert' : 'warning'}">$${cost.projected_total.toFixed(2)}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Hourly Rate</span>
+                                <span class="metric-value">$2.49/hour</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Last Updated Footer
+                html += `
+                    <div class="footer">
+                        <p>Last updated: ${data.last_update_ago}</p>
+                        <p>Auto-refresh interval: 30 seconds</p>
+                        <p class="footer-brand">Jebi AI Engine - Full Prevention Hardware for Mining Operations</p>
+                    </div>
+                `;
+
+                document.getElementById('dashboard').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('dashboard').innerHTML = `
+                    <div class="error">
+                        <strong>Error loading metrics</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Initial load
+        updateDashboard();
+
+        // Auto-refresh every 30 seconds
+        setInterval(updateDashboard, 30000);
+    </script>
+</body>
+</html>

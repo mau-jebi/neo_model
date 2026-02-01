@@ -425,10 +425,33 @@ echo "  Cost: \$75-90 total"
 ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$IP "
 cd ~/neo_model
 source venv/bin/activate
+
+# Save launch time for cost calculation
+date -Iseconds > /tmp/neo_model_launch_time.txt
+
+# Start training in tmux
 tmux new-session -d -s training 'python scripts/train.py --config configs/rtdetr_r50_1920x1080_h100.yml 2>&1 | tee training.log'
 "
 
 echo "✓ Training started in tmux session"
+echo ""
+
+# Stage 10: Start Web Dashboard
+echo "Stage 10: Launching web monitoring dashboard..."
+ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$IP "
+cd ~/neo_model/dashboard
+source ../venv/bin/activate
+
+# Install Flask if needed
+pip list | grep -q Flask || pip install flask
+
+# Start dashboard in background
+nohup python app.py > dashboard.log 2>&1 &
+sleep 2
+echo '✓ Dashboard started on port 8080'
+"
+
+echo "✓ Web dashboard launched"
 echo ""
 echo "========================================"
 echo "Training Launched Successfully!"
@@ -436,6 +459,12 @@ echo "========================================"
 echo "Instance ID: $INSTANCE_ID"
 echo "IP Address: $IP"
 echo "SSH: ssh -i $SSH_KEY_PATH ubuntu@$IP"
+echo ""
+echo "Web Dashboard (NEW!):"
+echo "  URL: http://$IP:8080"
+echo "  Features: Real-time metrics, GPU stats, cost tracking"
+echo "  Auto-refreshes every 30 seconds"
+echo "  Mobile-friendly, Jebi-branded design"
 echo ""
 echo "Monitor training:"
 echo "  ssh -i $SSH_KEY_PATH ubuntu@$IP 'tail -f ~/neo_model/training.log'"
@@ -464,7 +493,51 @@ chmod +x scripts/automate_training.sh
 
 ## Training Monitoring
 
-### Check Training Progress
+### Web Dashboard (Recommended) 🎉
+
+**NEW**: Real-time web-based monitoring with Jebi branding!
+
+Access your training dashboard from any device (phone, tablet, laptop):
+
+```bash
+# Get instance IP
+IP=$(cat /tmp/neo_model_instance_ip.txt)
+
+# Open in browser
+open http://$IP:8080  # macOS
+# or visit: http://your-instance-ip:8080
+```
+
+**Dashboard Features**:
+- ✅ **Real-time metrics**: Epoch progress, loss, AP scores
+- ✅ **GPU monitoring**: Utilization, memory, temperature, power
+- ✅ **Cost tracking**: Running cost and projected total
+- ✅ **Training speed**: Iterations/sec, time per epoch, ETA
+- ✅ **Auto-refresh**: Updates every 30 seconds automatically
+- ✅ **Mobile-friendly**: Responsive design for phones
+- ✅ **Jebi-branded**: Professional design with Jebi identity
+
+**Dashboard Screenshots**:
+- Training progress bar with epoch completion
+- Large loss display with trend indicators
+- GPU metrics in grid layout
+- Cost tracker with uptime hours
+- Estimated completion time
+
+**Access from Phone**:
+1. Open browser on phone
+2. Navigate to `http://209.20.157.204:8080` (use your instance IP)
+3. Bookmark for quick access
+4. Page auto-refreshes, no manual reload needed
+
+**Dashboard API** (for programmatic access):
+```bash
+curl http://$IP:8080/api/status | python3 -m json.tool
+```
+
+### CLI Monitoring (Traditional)
+
+For command-line monitoring:
 
 ```bash
 # Load instance info
@@ -788,6 +861,14 @@ chmod +x scripts/monitor_training.sh
 ```
 
 ### Monitor Training
+
+**Web Dashboard** (Recommended):
+```bash
+# Open in browser
+open http://$(cat /tmp/neo_model_instance_ip.txt):8080
+```
+
+**CLI Monitoring**:
 ```bash
 ./scripts/monitor_training.sh
 ```
@@ -815,10 +896,14 @@ curl -u "$API_KEY:" https://cloud.lambda.ai/api/v1/instance-operations/terminate
 This automation guide enables:
 - ✅ **Fully automated instance provisioning** via Lambda Labs API
 - ✅ **One-command training launch** with `automate_training.sh`
-- ✅ **Continuous monitoring** with `monitor_training.sh`
+- ✅ **Real-time web dashboard** with Jebi branding (NEW!)
+- ✅ **Mobile-friendly monitoring** from any device
+- ✅ **Continuous CLI monitoring** with `monitor_training.sh`
 - ✅ **Cost tracking** throughout execution
 - ✅ **Safe termination** to prevent billing overruns
 
 **Total active user time**: <10 minutes
 **Total elapsed time**: ~30-36 hours
 **Total cost**: $75-90 for complete training
+
+**Dashboard URL**: `http://[instance-ip]:8080` - Access from any browser!

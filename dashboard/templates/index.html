@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>neo_model Training Monitor | Jebi AI Engine</title>
+
+    <!-- Jebi Brand Typography: Poppins (body) + Montserrat (headlines) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================================================
+           JEBI DESIGN SYSTEM v2.0
+           Material 3 Expressive + Jebi Brand Identity
+           Industrial Computer Vision & Edge AI Platforms
+           ======================================================================== */
+
+        :root {
+            /* === Color Palette === */
+            --jebi-red: #FE3B1F;
+            --jebi-red-bright: #FE1E1F;
+            --jebi-dark: #002634;
+            --jebi-blue-medium: #174F64;
+            --jebi-blue-light: #5396A5;
+            --jebi-gray-light: #C3C6C8;
+
+            /* Surface Colors (Dark Mode) */
+            --surface: #0A1419;
+            --surface-dim: #000A0F;
+            --surface-bright: #1A2429;
+            --surface-container: #162126;
+            --surface-container-high: #1D282D;
+            --surface-container-highest: #283338;
+            --on-surface: #E1E3E5;
+            --on-surface-variant: #BFC8CC;
+
+            /* Semantic Colors */
+            --success: #34D399;
+            --warning: #FEB91F;
+            --error: #EF4444;
+
+            /* Typography */
+            --font-headline: 'Montserrat', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+
+            /* Spacing (8dp Grid) */
+            --spacing-4: 4px;
+            --spacing-8: 8px;
+            --spacing-12: 12px;
+            --spacing-16: 16px;
+            --spacing-20: 20px;
+            --spacing-24: 24px;
+            --spacing-32: 32px;
+            --spacing-40: 40px;
+
+            /* Shape */
+            --corner-small: 8px;
+            --corner-medium: 12px;
+            --corner-large: 16px;
+
+            /* Elevation */
+            --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.24);
+            --elevation-2: 0 3px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+
+            /* Motion */
+            --duration-fast: 200ms;
+            --duration-default: 350ms;
+            --duration-slow: 500ms;
+            --easing: cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--on-surface);
+            background: linear-gradient(135deg, var(--jebi-dark) 0%, var(--surface-dim) 100%);
+            min-height: 100vh;
+            padding: var(--spacing-16);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @media (min-width: 600px) {
+            body {
+                padding: var(--spacing-24);
+            }
+        }
+
+        @media (min-width: 840px) {
+            body {
+                padding: var(--spacing-32);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* === HEADER === */
+        header {
+            background: var(--surface-container);
+            border-radius: var(--corner-large);
+            padding: var(--spacing-24);
+            margin-bottom: var(--spacing-24);
+            box-shadow: var(--elevation-1);
+            border: 1px solid rgba(254, 59, 31, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(254, 59, 31, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--spacing-16);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-12);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            background: var(--jebi-red);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--jebi-red);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.15);
+            }
+        }
+
+        h1 {
+            font-family: var(--font-headline);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--on-surface);
+            letter-spacing: -0.5px;
+        }
+
+        @media (min-width: 600px) {
+            h1 {
+                font-size: 32px;
+            }
+        }
+
+        .logo-accent {
+            color: var(--jebi-red);
+            font-weight: 800;
+        }
+
+        .instance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-8);
+            background: var(--surface-container-high);
+            color: var(--on-surface-variant);
+            padding: var(--spacing-8) var(--spacing-16);
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .instance-badge::before {
+            content: '▸';
+            color: var(--jebi-red);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* === CARDS === */
+        .card {
+            background: var(--surface-container);
+            border-radius: var(--corner-medium);
+            padding: var(--spacing-24);
+            margin-bottom: var(--spacing-20);
+            box-shadow: var(--elevation-1);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all var(--duration-default) var(--easing);
+        }
+
+        .card:hover {
+            box-shadow: var(--elevation-2);
+            transform: translateY(-2px);
+            border-color: rgba(254, 59, 31, 0.25);
+        }
+
+        .card h2 {
+            font-family: var(--font-headline);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--jebi-red);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: var(--spacing-20);
+            padding-bottom: var(--spacing-12);
+            border-bottom: 3px solid rgba(254, 59, 31, 0.4);
+        }
+
+        /* === METRICS === */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-16) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--on-surface);
+            text-align: right;
+        }
+
+        .metric-value.large {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--jebi-red);
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+        }
+
+        @media (max-width: 600px) {
+            .metric-value.large {
+                font-size: 36px;
+            }
+        }
+
+        .metric-value.good {
+            color: var(--success);
+        }
+
+        .metric-value.warning {
+            color: var(--warning);
+        }
+
+        .metric-value.danger {
+            color: var(--error);
+        }
+
+        /* === PROGRESS BAR === */
+        .progress-container {
+            margin: var(--spacing-24) 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: var(--surface-container-high);
+            border-radius: 999px;
+            overflow: hidden;
+            border: 2px solid rgba(254, 59, 31, 0.3);
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--jebi-red) 0%, var(--jebi-red-bright) 100%);
+            transition: width var(--duration-slow) var(--easing);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFFFFF;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: var(--spacing-12);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* === GRID METRICS === */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-16);
+        }
+
+        @media (max-width: 600px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-12);
+            }
+        }
+
+        .grid-metric {
+            background: var(--surface-container-high);
+            padding: var(--spacing-20);
+            border-radius: var(--corner-small);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all var(--duration-fast) var(--easing);
+        }
+
+        .grid-metric:hover {
+            background: var(--surface-container-highest);
+            border-color: rgba(254, 59, 31, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .grid-metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--on-surface-variant);
+            margin-bottom: var(--spacing-8);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .grid-metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--on-surface);
+            line-height: 1.2;
+        }
+
+        /* === FOOTER === */
+        .footer {
+            text-align: center;
+            margin-top: var(--spacing-40);
+            padding: var(--spacing-24);
+            background: var(--surface-container);
+            border-radius: var(--corner-medium);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .footer p {
+            color: var(--on-surface-variant);
+            font-size: 14px;
+            font-weight: 500;
+            margin: var(--spacing-4) 0;
+        }
+
+        .footer-brand {
+            margin-top: var(--spacing-12);
+            font-weight: 700;
+            color: var(--on-surface);
+        }
+
+        .footer-brand span {
+            color: var(--jebi-red);
+        }
+
+        /* === LOADING & ERROR === */
+        .loading {
+            text-align: center;
+            padding: var(--spacing-40);
+            color: var(--on-surface-variant);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .loading::before {
+            content: '';
+            display: block;
+            width: 48px;
+            height: 48px;
+            margin: 0 auto var(--spacing-16);
+            border: 4px solid rgba(254, 59, 31, 0.2);
+            border-top-color: var(--jebi-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid var(--error);
+            color: #FCA5A5;
+            padding: var(--spacing-20);
+            border-radius: var(--corner-medium);
+            margin-bottom: var(--spacing-20);
+            font-weight: 500;
+        }
+
+        .error strong {
+            display: block;
+            margin-bottom: var(--spacing-8);
+            color: var(--error);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* === TREND INDICATORS === */
+        .trend-down::after {
+            content: ' ↓';
+            color: var(--success);
+            font-size: 1.2em;
+            margin-left: var(--spacing-4);
+        }
+
+        .trend-up::after {
+            content: ' ↑';
+            color: var(--error);
+            font-size: 1.2em;
+            margin-left: var(--spacing-4);
+        }
+
+        .trend-stable::after {
+            content: ' →';
+            color: var(--warning);
+            font-size: 1.2em;
+            margin-left: var(--spacing-4);
+        }
+
+        /* === ACCESSIBILITY === */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        *:focus-visible {
+            outline: 3px solid var(--jebi-red);
+            outline-offset: 2px;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 600px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card {
+                padding: var(--spacing-16);
+            }
+
+            .metric-label {
+                font-size: 12px;
+            }
+
+            .metric-value {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-left">
+                    <span class="status-indicator"></span>
+                    <h1><span class="logo-accent">neo_model</span> Training Monitor</h1>
+                </div>
+                <div class="instance-badge">H100 • 209.20.157.204</div>
+            </div>
+        </header>
+
+        <div id="dashboard">
+            <div class="loading">Loading training metrics</div>
+        </div>
+    </div>
+
+    <script>
+        let previousLoss = null;
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                const training = data.training;
+                const gpu = data.gpu;
+                const cost = data.cost;
+                const completion = data.completion;
+
+                // Determine loss trend
+                let lossTrend = '';
+                if (previousLoss !== null && training.loss !== null) {
+                    if (training.loss < previousLoss * 0.95) {
+                        lossTrend = 'trend-down';
+                    } else if (training.loss > previousLoss * 1.05) {
+                        lossTrend = 'trend-up';
+                    } else {
+                        lossTrend = 'trend-stable';
+                    }
+                }
+                previousLoss = training.loss;
+
+                // Build HTML
+                let html = '';
+
+                // Training Progress Card
+                html += `
+                    <div class="card">
+                        <h2>Training Progress</h2>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${training.epoch_progress}%">
+                                    ${training.epoch_progress}%
+                                </div>
+                            </div>
+                            <div class="progress-text">
+                                Epoch ${training.epoch} / ${training.total_epochs}
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Batch</span>
+                            <span class="metric-value">${training.current_batch} / ${training.total_batches}</span>
+                        </div>
+                        ${completion ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Est. Completion</span>
+                            <span class="metric-value">${completion.eta}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Hours Remaining</span>
+                            <span class="metric-value">${completion.hours_remaining.toFixed(1)}h</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Loss and AP Metrics Card
+                html += `
+                    <div class="card">
+                        <h2>Training Metrics</h2>
+                        <div class="metric-row">
+                            <span class="metric-label">Current Loss</span>
+                            <span class="metric-value large ${lossTrend}">
+                                ${training.loss !== null ? training.loss.toFixed(3) : 'N/A'}
+                            </span>
+                        </div>
+                        ${training.ap !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Average Precision (AP)</span>
+                            <span class="metric-value good">${(training.ap * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.ap50 !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">AP @ IoU=0.50</span>
+                            <span class="metric-value">${(training.ap50 * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.ap75 !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">AP @ IoU=0.75</span>
+                            <span class="metric-value">${(training.ap75 * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                        ${training.best_ap !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Best AP</span>
+                            <span class="metric-value good">${(training.best_ap * 100).toFixed(1)}%</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // GPU Status Card
+                html += `
+                    <div class="card">
+                        <h2>GPU Status (H100)</h2>
+                        <div class="grid-2">
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Utilization</div>
+                                <div class="grid-metric-value ${gpu.utilization > 85 ? 'good' : 'warning'}">
+                                    ${gpu.utilization !== null ? gpu.utilization + '%' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Memory</div>
+                                <div class="grid-metric-value">
+                                    ${gpu.memory_used !== null ? gpu.memory_used.toFixed(1) + ' GB' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Temperature</div>
+                                <div class="grid-metric-value ${gpu.temperature > 80 ? 'warning' : ''}">
+                                    ${gpu.temperature !== null ? gpu.temperature + '°C' : 'N/A'}
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <div class="grid-metric-label">Power Draw</div>
+                                <div class="grid-metric-value">
+                                    ${gpu.power_draw !== null ? gpu.power_draw.toFixed(0) + 'W' : 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Training Configuration Card
+                html += `
+                    <div class="card">
+                        <h2>Training Configuration</h2>
+                        <div class="metric-row">
+                            <span class="metric-label">Batch Size</span>
+                            <span class="metric-value">16 (4×4 accum)</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Learning Rate</span>
+                            <span class="metric-value">
+                                ${training.learning_rate !== null ? training.learning_rate.toExponential(2) : 'N/A'}
+                            </span>
+                        </div>
+                        ${training.speed !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Training Speed</span>
+                            <span class="metric-value">${training.speed.toFixed(2)} it/s</span>
+                        </div>
+                        ` : ''}
+                        ${training.time_per_epoch !== null ? `
+                        <div class="metric-row">
+                            <span class="metric-label">Time per Epoch</span>
+                            <span class="metric-value">${(training.time_per_epoch / 60).toFixed(1)} min</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Cost Tracking Card
+                if (cost.uptime_hours !== null) {
+                    html += `
+                        <div class="card">
+                            <h2>Cost Tracking</h2>
+                            <div class="metric-row">
+                                <span class="metric-label">Instance Uptime</span>
+                                <span class="metric-value">${cost.uptime_hours.toFixed(1)}h</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Cost So Far</span>
+                                <span class="metric-value">$${cost.cost_so_far.toFixed(2)}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Projected Total</span>
+                                <span class="metric-value warning">$${cost.projected_total.toFixed(2)}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Rate</span>
+                                <span class="metric-value">$2.49/hour</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Footer
+                html += `
+                    <div class="footer">
+                        <p>Last updated: ${data.last_update_ago}</p>
+                        <p style="margin-top: 8px;">Auto-refreshes every 30 seconds</p>
+                        <p class="footer-brand"><span>Jebi</span> AI Engine • RT-DETR 1920×1080</p>
+                    </div>
+                `;
+
+                document.getElementById('dashboard').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('dashboard').innerHTML = `
+                    <div class="error">
+                        <strong>Error Loading Metrics</strong>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Initial load
+        updateDashboard();
+
+        // Auto-refresh every 30 seconds
+        setInterval(updateDashboard, 30000);
+    </script>
+</body>
+</html>
