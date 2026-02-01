@@ -1,0 +1,223 @@
+# RT-DETR ResNet-50 Configuration for 1920x1080 (16:9 aspect ratio)
+# Jebi AI Engine - Native 1920x1080 Object Detection
+
+# Model Architecture
+model:
+  type: "RTDETR"
+  backbone:
+    type: "ResNet50"
+    pretrained: true
+    frozen_stages: -1  # -1 means no frozen stages, 0-4 to freeze specific stages
+    output_stride: [8, 16, 32]
+    out_channels: [512, 1024, 2048]
+
+  encoder:
+    type: "HybridEncoder"
+    in_channels: [512, 1024, 2048]
+    hidden_dim: 256
+    num_encoder_layers: 3
+    expansion: 1.0
+    depth_mult: 1.0
+    use_encoder_idx: [2]  # Use features from layer index 2 (C5)
+    num_encoder_layers: 1
+
+  decoder:
+    type: "RTDETRTransformer"
+    hidden_dim: 256
+    num_queries: 300
+    num_decoder_layers: 6
+    num_heads: 8
+    dim_feedforward: 1024
+    dropout: 0.0
+    activation: "relu"
+    num_denoising: 100
+    label_noise_ratio: 0.5
+    box_noise_scale: 1.0
+    learn_query_content: false
+
+  criterion:
+    type: "RTDETRCriterion"
+    weight_dict:
+      loss_vfl: 1.0        # Varifocal loss for classification
+      loss_bbox: 5.0       # L1 loss for bounding boxes
+      loss_giou: 2.0       # GIoU loss for bounding boxes
+    losses: ["vfl", "boxes"]
+    alpha: 0.75
+    gamma: 2.0
+    matcher:
+      type: "HungarianMatcher"
+      cost_class: 2.0
+      cost_bbox: 5.0
+      cost_giou: 2.0
+
+# Input Configuration (16:9 aspect ratio)
+input:
+  width: 1920
+  height: 1080
+  channels: 3
+  mean: [0.485, 0.456, 0.406]  # ImageNet normalization
+  std: [0.229, 0.224, 0.225]
+
+# Feature Map Sizes (for verification)
+# Stride 8:  H=135 (1080/8),  W=240 (1920/8)
+# Stride 16: H=67  (1080/16), W=120 (1920/16)
+# Stride 32: H=33  (1080/32), W=60  (1920/32)
+
+# Dataset Configuration
+data:
+  dataset_type: "COCODataset"
+  num_classes: 80  # COCO has 80 classes
+
+  train:
+    root: "data/coco/train2017"
+    annotation: "data/coco/annotations/instances_train2017.json"
+    batch_size: 4  # Reduced due to large resolution (3x more pixels than 640x640)
+    num_workers: 8
+    shuffle: true
+    drop_last: true
+
+  val:
+    root: "data/coco/val2017"
+    annotation: "data/coco/annotations/instances_val2017.json"
+    batch_size: 4
+    num_workers: 8
+    shuffle: false
+    drop_last: false
+
+# Data Augmentation (preserving 16:9 aspect ratio)
+augmentation:
+  train:
+    - type: "RandomHorizontalFlip"
+      prob: 0.5
+
+    - type: "RandomSelect"
+      transforms:
+        - type: "RandomResize"
+          sizes: [[1920, 1080]]  # Native resolution
+          keep_ratio: true
+        - type: "Compose"
+          transforms:
+            - type: "RandomResize"
+              sizes: [[1600, 900], [1760, 990], [1920, 1080], [2080, 1170], [2240, 1260]]
+              keep_ratio: true
+            - type: "RandomSizeCrop"
+              min_size: 960
+              max_size: 1920
+              respect_aspect_ratio: true  # Maintain 16:9
+            - type: "RandomResize"
+              sizes: [[1920, 1080]]
+              keep_ratio: true
+
+    - type: "ColorJitter"
+      brightness: 0.2
+      contrast: 0.2
+      saturation: 0.2
+      hue: 0.1
+
+    - type: "Normalize"
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+
+  val:
+    - type: "Resize"
+      size: [1920, 1080]
+      keep_ratio: true
+
+    - type: "Normalize"
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+
+# Training Configuration
+training:
+  # Optimizer
+  optimizer:
+    type: "AdamW"
+    lr: 0.0001  # Lower LR due to fine-tuning from pretrained
+    weight_decay: 0.0001
+    betas: [0.9, 0.999]
+
+  # Learning Rate Scheduler
+  lr_scheduler:
+    type: "MultiStepLR"
+    milestones: [40, 55]  # Drop LR at these epochs
+    gamma: 0.1
+
+  # Training Duration
+  epochs: 72
+  warmup_epochs: 5
+
+  # Gradient Clipping
+  clip_max_norm: 0.1
+
+  # Mixed Precision Training (critical for memory management)
+  use_amp: true  # Automatic Mixed Precision
+
+  # Gradient Accumulation (to simulate larger batch size)
+  accumulate_grad_batches: 2  # Effective batch size = 4 * 2 = 8
+
+  # Transfer Learning
+  pretrained_weights: null  # Path to RT-DETR pretrained at 640x640
+  resume_from: null  # Path to checkpoint to resume training
+  freeze_backbone_epochs: 5  # Freeze backbone for first N epochs
+
+  # Evaluation
+  eval_interval: 2  # Evaluate every N epochs
+  save_interval: 5  # Save checkpoint every N epochs
+
+# Evaluation Configuration
+evaluation:
+  metric: "coco"
+  iou_thresholds: [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+  max_dets: [1, 10, 100]
+  area_ranges:
+    all: [0, 10000000000]
+    small: [0, 1024]
+    medium: [1024, 9216]
+    large: [9216, 10000000000]
+
+  # Target Metrics
+  target_metrics:
+    AP: 0.525      # Target: >52.5%
+    AP50: 0.70     # Target: >70%
+    AP75: 0.57     # Target: >57%
+
+# Post-processing
+postprocess:
+  confidence_threshold: 0.3  # Minimum confidence for detections
+  nms_threshold: 0.7         # NMS IoU threshold
+  max_detections: 300        # Maximum detections per image
+
+# Checkpointing
+checkpoint:
+  save_dir: "checkpoints"
+  save_best: true
+  save_last: true
+  monitor: "AP"  # Metric to monitor for best checkpoint
+  mode: "max"
+
+# Logging
+logging:
+  tensorboard: true
+  log_dir: "outputs/logs"
+  log_interval: 50  # Log every N iterations
+
+# Hardware Configuration
+hardware:
+  device: "cuda"  # cuda or cpu
+  gpu_ids: [0]
+  distributed: false
+  num_gpus: 1
+
+  # Memory Management (critical for 1920x1080)
+  pin_memory: true
+  benchmark: true  # cudnn.benchmark for faster training
+
+# Reproducibility
+seed: 42
+deterministic: false  # Set true for full reproducibility (slower)
+
+# Debugging
+debug:
+  enabled: false
+  overfit_batches: 0  # Set to N to overfit on N batches for testing
+  fast_dev_run: false  # Run 1 batch for quick testing
