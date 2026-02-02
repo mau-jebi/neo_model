@@ -1,0 +1,203 @@
+# Automated Training Pipeline Configuration
+# -----------------------------------------
+# This config defines the end-to-end pipeline:
+# S3 Data Input -> Training -> ONNX Export -> S3 Output
+#
+# Usage:
+#   python scripts/automated_pipeline.py --config configs/pipeline_config.yml
+#
+# Environment Variables Required:
+#   AWS_ACCESS_KEY_ID: Your AWS access key
+#   AWS_SECRET_ACCESS_KEY: Your AWS secret key
+#   (Or use AWS IAM roles if running on EC2/Lambda Labs)
+
+# Pipeline identification
+pipeline:
+  name: "neo_model_training_pipeline"
+  version: "1.0.0"
+  description: "RT-DETR 1920x1080 automated training pipeline"
+
+# S3 Input Configuration
+s3_input:
+  # S3 bucket containing the labeled dataset
+  bucket: "jebi-training-data"
+
+  # Prefix where COCO-format dataset is stored
+  # Expected structure:
+  #   {data_prefix}/images/train2017/
+  #   {data_prefix}/images/val2017/
+  #   {data_prefix}/annotations/instances_train2017.json
+  #   {data_prefix}/annotations/instances_val2017.json
+  data_prefix: "datasets/coco"
+
+  # AWS region
+  region: "us-east-1"
+
+  # Optional: custom endpoint for S3-compatible services (MinIO, etc.)
+  # endpoint_url: "https://minio.example.com"
+
+# S3 Output Configuration
+s3_output:
+  # S3 bucket for trained model artifacts
+  bucket: "jebi-trained-models"
+
+  # Prefix for output artifacts
+  # Will create: {output_prefix}/{run_id}/
+  #   - checkpoints/best_checkpoint.pth
+  #   - onnx/model.onnx
+  #   - config/training_config.yml
+  #   - logs/ (TensorBoard logs)
+  #   - manifest.json
+  output_prefix: "models/rtdetr-1920x1080"
+
+  # AWS region
+  region: "us-east-1"
+
+# Local storage configuration
+local:
+  # Base directory for local data and outputs
+  base_dir: "/tmp/neo_model_pipeline"
+
+  # Data directory (where S3 data is downloaded)
+  data_dir: "${base_dir}/data"
+
+  # Output directory (where training outputs are saved)
+  output_dir: "${base_dir}/outputs"
+
+  # Whether to keep local files after pipeline completes
+  cleanup_after_upload: false
+
+# Training configuration
+training:
+  # Path to model training config (relative to project root)
+  config_file: "configs/rtdetr_r50_1920x1080.yml"
+
+  # Override training parameters (optional)
+  # These override values in the training config file
+  overrides:
+    # Number of training epochs
+    epochs: 72
+
+    # Batch size (adjust based on GPU memory)
+    batch_size: 4
+
+    # Learning rate
+    lr: 0.0001
+
+    # Use mixed precision (FP16)
+    use_amp: true
+
+    # Gradient accumulation steps
+    accumulate_grad_batches: 2
+
+    # Gradient clipping
+    clip_max_norm: 0.1
+
+    # Warmup epochs
+    warmup_epochs: 5
+
+  # Resume from checkpoint (optional)
+  # Can be local path or S3 URI (s3://bucket/path/to/checkpoint.pth)
+  resume_checkpoint: null
+
+  # Save checkpoint every N epochs
+  checkpoint_interval: 5
+
+  # Early stopping patience (0 to disable)
+  early_stopping_patience: 0
+
+# ONNX export configuration
+onnx_export:
+  # Whether to export to ONNX after training
+  enabled: true
+
+  # ONNX opset version (17 recommended for transformers)
+  opset_version: 17
+
+  # Enable dynamic batch size
+  dynamic_batch: true
+
+  # Apply ONNX simplification
+  simplify: true
+
+  # Verify ONNX output against PyTorch
+  verify: true
+
+  # Export with FP16 precision
+  fp16: false
+
+  # Run benchmark after export
+  benchmark: true
+
+  # Output filename (relative to output directory)
+  output_name: "model.onnx"
+
+# Evaluation configuration
+evaluation:
+  # Run evaluation after training
+  enabled: true
+
+  # Confidence threshold for evaluation
+  conf_threshold: 0.01
+
+  # NMS threshold
+  nms_threshold: 0.7
+
+  # Save evaluation results
+  save_results: true
+
+# Hardware configuration
+hardware:
+  # Device to use (cuda, cpu, or cuda:N for specific GPU)
+  device: "cuda"
+
+  # Number of data loader workers
+  num_workers: 8
+
+  # Prefetch factor for data loading
+  prefetch_factor: 4
+
+# Logging configuration
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: "INFO"
+
+  # Enable TensorBoard logging
+  tensorboard: true
+
+  # Log to file
+  log_to_file: true
+
+  # Log filename
+  log_file: "pipeline.log"
+
+# Notification configuration (optional)
+notifications:
+  # Enable notifications
+  enabled: false
+
+  # Slack webhook URL for notifications
+  slack_webhook: null
+
+  # Email notifications
+  email:
+    enabled: false
+    smtp_server: null
+    recipients: []
+
+# Pipeline behavior
+pipeline_options:
+  # Fail fast on errors
+  fail_fast: true
+
+  # Retry failed S3 operations
+  s3_retry_attempts: 3
+
+  # Verify S3 dataset structure before training
+  verify_dataset: true
+
+  # Generate run ID automatically (timestamp-based)
+  auto_run_id: true
+
+  # Custom run ID (if auto_run_id is false)
+  run_id: null
